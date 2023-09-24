@@ -1,12 +1,12 @@
 import tldextract
 from xdriver.xutils.PhishIntentionWrapper import PhishIntentionWrapper
-from knowledge_expansion.utils import *
 from datetime import date, timedelta, datetime
 import warnings
 from db.db import *
 import socket
 from flask import Flask, request, jsonify
 from bs4 import BeautifulSoup
+import re
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.nn.functional")
 
@@ -20,6 +20,34 @@ class MyLogger:
         log_message = f'[{timestamp}] {str(message)}'
         with open(self.file_path,'a') as file:
             file.write(log_message + '\n')
+
+class OnlineForbiddenWord():
+    IGNORE_DOMAINS = ['wikipedia', 'wiki',
+                      'bloomberg', 'glassdoor',
+                      'linkedin', 'jobstreet',
+                      'facebook', 'twitter',
+                      'instagram', 'youtube', 'org', 'accounting']
+
+    # ignore those webhosting/domainhosting sites
+    WEBHOSTING_TEXT = '(webmail.*)|(.*godaddy.*)|(.*roundcube.*)|(.*clouddns.*)|(.*namecheap.*)|(.*plesk.*)|(.*rackspace.*)|(.*cpanel.*)|(.*virtualmin.*)|(.*control.*webpanel.*)|(.*hostgator.*)|(.*mirohost.*)|(.*hostinger.*)|(.*bisecthosting.*)|(.*misshosting.*)|(.*serveriai.*)|(.*register\.to.*)|(.*appspot.*)|' \
+                      '(.*weebly.*)|(.*serv5.*)|(.*weebly.*)|(.*umbler.*)|(.*joomla.*)' \
+                      '(.*webnode.*)|(.*duckdns.*)|(.*moonfruit.*)|(.*netlify.*)|' \
+                      '(.*glitch.*)|(.*herokuapp.*)|(.*yolasite.*)|(.*dynv6.*)|(.*cdnvn.*)|' \
+                      '(.*surge.*)|(.*myshn.*)|(.*azurewebsites.*)|(.*dreamhost.*)|host|cloak|domain|block|isp|azure|wordpress|weebly|dns|network|shortener|server|helpdesk|laravel|jellyfin|portainer|reddit|storybook'
+
+    WEBHOSTING_DOMAINS = ['godaddy', 'roundcube',
+                          'clouddns', 'namecheap',
+                          'plesk', 'rackspace', 'cpanel',
+                          'virtualmin', 'control-webpanel',
+                          'hostgator', 'mirohost', 'hostinger',
+                          'bisecthosting', 'misshosting', 'serveriai',
+                          'register', 'appspot', 'weebly', 'serv5',
+                          'weebly', 'umbler', 'joomla', 'webnode', 'duckdns',
+                          'moonfruit', 'netlify', 'glitch', 'herokuapp',
+                          'yolasite', 'dynv6', 'cdnvn', 'surge', 'myshn',
+                          'azurewebsites', 'dreamhost', 'proisp',
+                          'accounting']
+
 
 logger = MyLogger('runtime.log.txt')
 
